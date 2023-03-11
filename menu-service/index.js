@@ -52,5 +52,5 @@ app.delete('/:id', (req, res) => {
 })
 
 const service = app.listen(port, () => {
-    serviceLog(`Listening on port ${service.address().port}...`)
+    serviceLog(`Listening on port ${service.address().port} ...`)
 })
