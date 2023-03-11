@@ -32,8 +32,8 @@ app.post('/cafe', async (req, res) => {
         id_cafe: cafe._id,
         data: {
             id: 1,
-            lat: req.body.outlet.lat,
-            long: req.body.outlet.long
+            lat: req.body.lat,
+            long: req.body.long
         }
     }
     await Outlet.create(dataOutlet)
