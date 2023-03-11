@@ -77,30 +77,73 @@ app.put('/cafe/:id', async (req, res) => {
     })
 })
 
-app.delete('/cafe/:id', (req, res) => {
+app.delete('/cafe/:id', async (req, res) => {
+    await Cafe.deleteOne({_id: req.params.id})
     res.status(200).json({
         success: true,
-        message: "Menu has been deleted"
+        message: "Cafe has been deleted"
     })
 })
 
 app.post('/cafe/:id/outlet', async (req, res) => {
-    let id = 0
-
-    let cafe = await Outlet.findOne({id_cafe: req.params.id})
-    id = cafe.data[cafe.data.length - 1].id + 1
-    serviceLog(id)
+    let id = 1
 
     let data = {
         id: id,
         lat: req.body.lat,
         long: req.body.long
     }
-    await Outlet.updateOne({id_cafe: req.params.id}, {$push: {data: data}})
+
+    let outlet = await Outlet.findOne({id_cafe: req.params.id})
+    if (!outlet) {
+        await Outlet.create({
+            id_cafe: req.params.id,
+            data: data
+        })
+    }
+    else {
+        data.id = outlet.data[outlet.data.length - 1].id + 1
+        await Outlet.updateOne({id_cafe: req.params.id}, {$push: {data: data}})
+    }
     res.status(201).json({
         success: true,
-        message: "Cafe has been created"
+        message: "Cafe outlet has been created"
     })
+})
+
+app.put('/cafe/:id/outlet/:outlet', async (req, res) => {
+    try {
+        await Outlet.updateOne({'data.id': req.params.outlet, id_cafe: req.params.id}, {'$set': {
+            'data.$.lat': req.body.lat,
+            'data.$.long': req.body.long
+        }})
+        res.status(200).json({
+            success: true,
+            message: "Cafe outlet has been updated"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success: true,
+            message: "Unable to update cafe outlet"
+        })
+        console.log(error);
+    }
+})
+
+app.delete('/cafe/:id/outlet/:outlet', async (req, res) => {
+    try {
+        await Outlet.updateOne({id_cafe: req.params.id}, {'$pull': {data: {id: req.params.outlet}}})
+        res.status(200).json({
+            success: true,
+            message: "Cafe outlet has been deleted"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success: true,
+            message: "Unable to delete cafe outlet"
+        })
+        console.log(error);        
+    }
 })
 
 const service = app.listen(port, () => {
