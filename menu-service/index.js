@@ -51,5 +51,6 @@ app.delete('/:id', (req, res) => {
     })
 })
 
-app.listen(port, () => { serviceLog("Service Started") })
-
+app.listen(port, () => { 
+    serviceLog(`Listening on port ${port}...`)
+})
