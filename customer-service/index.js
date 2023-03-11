@@ -1,26 +1,28 @@
 const express = require('express')
 const axios = require('axios')
-const app = express()
-
-const port = 0
-const db = require('./database')
 const bodyParser = require('body-parser')
+const md5 = require('md5')
 const { serviceLog } = require('./utils')
+const db = require('./database')
+
+const app = express()
+const port = 8112
 
 const registeryUrl = `http://localhost:3000`
 
 app.use(bodyParser.json())
 
-app.get('/', async (req, res) => {
+app.get('/customer', async (req, res) => {
     getCustomers = async () => {
         return new Promise(function(resolve, reject) {
-            db.query(`SELECT id, name, address FROM customers`, (err, res) => {
+            db.query(`SELECT id, name, username, address FROM customers`, (err, res) => {
                 if (err) throw reject(err)
                 let data = []
                 res.forEach(element => {
                     data.push({
                         id: element.id,
                         name: element.name,
+                        username: element.username,
                         address: element.address
                     })
                 });
@@ -32,12 +34,14 @@ app.get('/', async (req, res) => {
     res.status(200).json(data)
 })
 
-app.post('/', (req, res) => {
+app.post('/customer', (req, res) => {
     const data = {
         name: req.body.name,
+        username: req.body.username,
+        password: req.body.password,
         address: req.body.address
     }
-    db.query(`INSERT INTO customers VALUES (?, ?, ?)`, [null, data.name, data.address], (err, res) => {
+    db.query(`INSERT INTO customers(\`name\`, \`username\`, \`password\`, \`address\`) VALUES (?, ?, ?, ?)`, [data.name, data.username, md5(data.password), data.address], (err, res) => {
         if (err) throw new Error(err)
         serviceLog("Customer has been created")
     })
@@ -48,7 +52,7 @@ app.post('/', (req, res) => {
 })
 
 
-app.patch('/:id', (req, res) => {
+app.patch('/customer/:id', (req, res) => {
     const data = {
         name: req.body.name,
         address: req.body.address
@@ -64,7 +68,7 @@ app.patch('/:id', (req, res) => {
     })
 })
 
-app.delete('/:id', (req, res) => {
+app.delete('/customer/:id', (req, res) => {
     db.query(`DELETE FROM customers WHERE id=?`, [req.params.id], (err, res) => {
         if (err) throw new Error(err)
         serviceLog("Customer has been deleted")

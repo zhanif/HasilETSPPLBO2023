@@ -13,6 +13,8 @@ sql = `CREATE TABLE customers
     id int NOT NULL AUTO_INCREMENT,
     name VARCHAR(255),
     address VARCHAR(255),
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255),
     PRIMARY KEY (id)
 )`
 
