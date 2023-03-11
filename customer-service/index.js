@@ -2,39 +2,12 @@ const express = require('express')
 const axios = require('axios')
 const app = express()
 
-const port = 8112
+const port = 0
 const db = require('./database')
 const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
 
 const registeryUrl = `http://localhost:3000`
-
-async function registerService(name, address) {
-    try {
-        await axios.post(`${registeryUrl}/register`, {name, address})
-        serviceLog(`Successfully registered with the registry`)
-    } catch (error) {
-        serviceLog(`Unable to register the service`)
-    }
-}
-
-async function unregisterService(name) {
-    try {
-        await axios.post(`${registeryUrl}/unregister`, {name})
-        serviceLog(`Successfully unregistered from the registry`)
-    } catch (error) {
-        serviceLog(`Unable to unregister the service`)
-    }
-}
-
-async function lookupService(name) {
-    try {
-        const response = await axios.get(`${registeryUrl}/lookup/${name}`)
-        return response.data.data.address
-    } catch (error) {
-        serviceLog(`Unable to lookup the service`)
-    }
-}
 
 app.use(bodyParser.json())
 
@@ -102,7 +75,6 @@ app.delete('/:id', (req, res) => {
     })
 })
 
-app.listen(port, () => {
-    serviceLog(`Listening on port ${port}...`)
-    registerService('customer-service', `http://localhost:${port}`)
+const service = app.listen(port, () => {
+    serviceLog(`Listening on port ${service.address().port}...`)
 })

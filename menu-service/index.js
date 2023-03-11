@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 
-const port = 8113
+const port = 0
 const mongoose = require('mongoose')
 
 mongoose.connect(`mongodb://localhost:27017/ets_menu_service`).then(() => {
@@ -51,6 +51,6 @@ app.delete('/:id', (req, res) => {
     })
 })
 
-app.listen(port, () => { 
-    serviceLog(`Listening on port ${port}...`)
+const service = app.listen(port, () => {
+    serviceLog(`Listening on port ${service.address().port}...`)
 })
