@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const md5 = require('md5')
 const { serviceLog } = require('./utils')
 const db = require('./database')
+const discoveryHelper = require('./discovery-helper')
 
 const app = express()
 const port = 8112
@@ -84,3 +85,4 @@ const service = app.listen(port, () => {
     serviceLog(`Listening on port ${xport} ...`, xport)
 })
 
+discoveryHelper.registerWithEureka('customer-service', port)
