@@ -6,8 +6,10 @@ const eurekaPort = 8761
 const hostName = 'localhost'
 const ipAddress = '127.0.0.1'
 
+var client = null
+
 exports.registerWithEureka = function (appName, port) {
-    const client = new Eureka({
+    client = new Eureka({
         instance: {
             app: appName,
             hostName: hostName,
@@ -54,4 +56,12 @@ exports.registerWithEureka = function (appName, port) {
     })
 
     process.on('SIGINT', exitHandler.bind(null, {exit:true}))
+}
+
+exports.getInstance = function (name) {
+    const service = client.getInstancesByAppId(name)
+    let url = null
+    if (service) url = `http://${service[0].hostName}:${service[0].port.$}`
+
+    return url
 }

@@ -126,7 +126,8 @@ app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
             })
         }
     
-        let orderDetail = await axios.get(`http://localhost:8114/order/${req.params.order_number}`)
+        let url = discoveryHelper.getInstance('order-service')
+        let orderDetail = await axios.get(`${url}/order/${req.params.order_number}`)
         if (!orderDetail.data.data) throw new Error(`Invalid order data`)
         
         let total_price = 0;
@@ -142,8 +143,8 @@ app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
         }
 
         console.log(data);
-    
-        await axios.post(`http://localhost:8116/payment`, data)
+        url = discoveryHelper.getInstance('payment-service')
+        await axios.post(`${url}/payment`, data)
         return res.status(200).json({
             success: true,
             message: "Ticket has been accepted"

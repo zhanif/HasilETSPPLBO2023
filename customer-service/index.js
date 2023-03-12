@@ -9,8 +9,6 @@ const discoveryHelper = require('./discovery-helper')
 const app = express()
 const port = 8112
 
-const registeryUrl = `http://localhost:3000`
-
 app.use(bodyParser.json())
 
 app.get('/customer', async (req, res) => {

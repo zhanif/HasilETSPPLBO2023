@@ -4,6 +4,7 @@ const { serviceLog } = require('./utils')
 const mongoose = require('mongoose')
 const axios = require('axios')
 const Order = require('./schemas/Order')
+const discoveryHelper = require('./discovery-helper')
 
 const app = express()
 const port = 8114
@@ -43,7 +44,8 @@ app.post('/order', async (req, res) => {
             id_outlet: req.body.id_outlet,
             order_number: randomString
         }
-        let resp = await axios.post(`http://localhost:8111/kitchen/ticket`, datax)
+        let url = discoveryHelper.getInstance('kitchen-service')
+        let resp = await axios.post(`${url}/kitchen/ticket`, datax)
         if (resp.status == 201) {
             return res.status(201).json({
                 success: true,
@@ -102,4 +104,6 @@ app.put('/order/:number/items', async (req, res) => {
 const service = app.listen(port, () => {
     let xport = service.address().port
     serviceLog(`Listening on port ${xport} ...`, xport)
+    discoveryHelper.registerWithEureka('order-service', xport)
 })
+

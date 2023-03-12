@@ -113,7 +113,8 @@ app.post('/payment/:order_number/pay', async (req, res) => {
                     order_number: select.order_number,
                     total_price: select.total_price,
                 }
-                await axios.post(`http://localhost:8117/transaction`, dataLog)
+                let url = discoveryHelper.getInstance('transaction-service')
+                await axios.post(`${url}/transaction`, dataLog)
             }
 
             return res.status(200).json({
