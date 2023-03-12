@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const axios = require('axios')
 const Transaction = require('./schemas/Transaction')
 
+const discoveryHelper = require('./discovery-helper')
 const app = express()
 const port = 8117
 
@@ -40,4 +41,5 @@ app.post('/transaction', async (req, res) => {
 const service = app.listen(port, () => {
     let xport = service.address().port
     serviceLog(`Listening on port ${xport} ...`, xport)
+    discoveryHelper.registerWithEureka('transaction-service', xport)
 })

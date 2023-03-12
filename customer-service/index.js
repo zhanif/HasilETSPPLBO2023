@@ -83,6 +83,5 @@ app.delete('/customer/:id', (req, res) => {
 const service = app.listen(port, () => {
     let xport = service.address().port
     serviceLog(`Listening on port ${xport} ...`, xport)
+    discoveryHelper.registerWithEureka('customer-service', xport)
 })
-
-discoveryHelper.registerWithEureka('customer-service', port)

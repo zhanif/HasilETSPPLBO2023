@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
 const db = require('./database')
 const axios = require('axios')
+const discoveryHelper = require('./discovery-helper')
 
 const app = express()
 const port = 8116
@@ -132,4 +133,5 @@ app.post('/payment/:order_number/pay', async (req, res) => {
 const service = app.listen(port, () => {
     let xport = service.address().port
     serviceLog(`Listening on port ${xport} ...`, xport)
+    discoveryHelper.registerWithEureka('payment-service', xport)
 })

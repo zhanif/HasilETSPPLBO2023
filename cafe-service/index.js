@@ -12,6 +12,7 @@ const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
 const Cafe = require('./schemas/Cafe')
 const Outlet = require('./schemas/Outlet')
+const discoveryHelper = require('./discovery-helper')
 
 app.use(bodyParser.json())
 
@@ -149,4 +150,5 @@ app.delete('/cafe/:id/outlet/:outlet', async (req, res) => {
 const service = app.listen(port, () => {
     let xport = service.address().port
     serviceLog(`Listening on port ${xport} ...`, xport)
+    discoveryHelper.registerWithEureka('cafe-service', xport)
 })
