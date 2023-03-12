@@ -44,7 +44,42 @@ app.post('/order', async (req, res) => {
             message: 'Order has been created'
         })
     } catch (error) {
-        
+        res.status(400).json({
+            success: true,
+            message: 'Unable to create order'
+        })
+    }
+})
+
+app.post('/order/:number/items', async (req, res) => {
+    try {
+        let data = req.body.items
+        await Order.updateOne({order_number: req.params.number}, {$push: {items: data}})
+        res.status(200).json({
+            success: true,
+            message: 'Order items have been updated'
+        })
+    } catch (error) {
+        res.status(400).json({
+            success: true,
+            message: 'Unable to update order items'
+        })        
+    }
+})
+
+app.put('/order/:number/items', async (req, res) => {
+    try {
+        let data = req.body.items
+        await Order.updateOne({order_number: req.params.number}, {items: data})
+        res.status(200).json({
+            success: true,
+            message: 'Order items have been updated'
+        })
+    } catch (error) {
+        res.status(400).json({
+            success: true,
+            message: 'Unable to update order items'
+        })        
     }
 })
 
