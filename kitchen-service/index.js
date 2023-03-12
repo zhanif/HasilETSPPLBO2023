@@ -5,6 +5,7 @@ const db = require('./database')
 const axios = require('axios')
 const discoveryHelper = require('./discovery-helper')
 const mysql = require('mysql')
+const consume = require('./consumer')
 
 const app = express()
 const port = 8111
@@ -15,6 +16,9 @@ app.use(bodyParser.json())
 //     let data = await Menu.find({})
 //     res.status(200).json(data)
 // })
+consume().catch((err) => {
+	console.error("error in consumer: ", err)
+})
 
 app.post('/kitchen/menu', async (req, res) => {
     const data = {

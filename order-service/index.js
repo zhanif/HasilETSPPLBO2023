@@ -1,13 +1,19 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
-const mongoose = require('mongoose')
 const axios = require('axios')
+const mongoose = require('mongoose')
+const Outbox = require('./outboxHandler')
 const Order = require('./schemas/Order')
 const discoveryHelper = require('./discovery-helper')
+const produce = require('./producer')
 
 const app = express()
 const port = 8114
+
+const outbox = new Outbox
+
+produce().catch(err => { console.error(err) })
 
 mongoose.connect(`mongodb://localhost:27017/ets_order_service`).then(() => {
     serviceLog(`Successfully connected to database`)
@@ -38,15 +44,19 @@ app.post('/order', async (req, res) => {
             order_number: randomString,
             items: req.body.items
         }
-        await Order.create(data)
-        let datax = {
-            id_cafe: req.body.id_cafe,
-            id_outlet: req.body.id_outlet,
-            order_number: randomString
-        }
-        let url = discoveryHelper.getInstance('kitchen-service')
-        let resp = await axios.post(`${url}/kitchen/ticket`, datax)
-        if (resp.status == 201) {
+        let order = await Order.create(data)
+        let payload = await Order.findById(order._id)
+        let outboxRetVal = await outbox.createOrder(order._id, payload)
+        // let datax = {
+        //     id_cafe: req.body.id_cafe,
+        //     id_outlet: req.body.id_outlet,
+        //     order_number: randomString
+        // }
+        // let url = discoveryHelper.getInstance('kitchen-service')
+        // let resp = await axios.post(`${url}/kitchen/ticket`, datax)
+        
+
+        if (order) {
             return res.status(201).json({
                 success: true,
                 message: 'Order has been created'
@@ -56,7 +66,7 @@ app.post('/order', async (req, res) => {
         console.log(error);
     }
     res.status(400).json({
-        success: true,
+        success: false,
         message: 'Unable to create order'
     })
 })
