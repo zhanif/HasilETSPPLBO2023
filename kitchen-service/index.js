@@ -4,6 +4,7 @@ const { serviceLog } = require('./utils')
 const db = require('./database')
 const axios = require('axios')
 const discoveryHelper = require('./discovery-helper')
+const mysql = require('mysql')
 
 const app = express()
 const port = 8111
@@ -116,39 +117,58 @@ app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
         let result = await new Promise((resolve, reject) => {
             db.query(`UPDATE ticket SET status=? WHERE order_number=?`, ['accept', req.params.order_number], (err, res) => {
                 if (err) reject(err)
-                resolve(true)
+                if (res.affectedRows > 0) resolve(true)
+                else resolve(false)
             })
         })
-        if (!result) {
-            return res.status(400).json({
-                success: true,
-                message: "Unable to accept ticket"
+        if (result) {
+            let url = discoveryHelper.getInstance('order-service')
+            let orderDetail = await axios.get(`${url}/order/${req.params.order_number}`)
+            if (!orderDetail.data.data) throw new Error(`Invalid order data`)
+            
+            let total_price = 0;
+            let bulkQuantity = []
+            orderDetail.data.data.items.forEach(i => {
+                total_price += i.price
+                bulkQuantity.push({
+                    id: i.id_menu,
+                    quantity: i.quantity
+                })
             })
-        }
-    
-        let url = discoveryHelper.getInstance('order-service')
-        let orderDetail = await axios.get(`${url}/order/${req.params.order_number}`)
-        if (!orderDetail.data.data) throw new Error(`Invalid order data`)
-        
-        let total_price = 0;
-        orderDetail.data.data.items.forEach(i => {
-            total_price += i.price
-        })
-    
-        let data = {
-            id_cafe: orderDetail.data.data.id_cafe,
-            id_customer: orderDetail.data.data.id_customer,
-            order_number: orderDetail.data.data.order_number,
-            total_price: total_price
-        }
 
-        console.log(data);
-        url = discoveryHelper.getInstance('payment-service')
-        await axios.post(`${url}/payment`, data)
-        return res.status(200).json({
-            success: true,
-            message: "Ticket has been accepted"
-        })
+            // remove stocks
+            let query = ``
+            bulkQuantity.forEach(item => {
+                query += mysql.format(`UPDATE menu SET quantity=GREATEST(0,quantity-?) WHERE id=?;`, [item.quantity, item.id])
+            })
+
+            console.log(query);
+
+            let result2 = await new Promise((resolve, reject) => {
+                db.query(query, [], (err, res) => {
+                    if (err) reject(err)
+                    if (res.affectedRows > 0) resolve(true)
+                    else resolve(false)
+                })
+            })
+            if (!result2) throw new Error(`unable to remove stocks`)
+
+            // make payment available
+        
+            let data = {
+                id_cafe: orderDetail.data.data.id_cafe,
+                id_customer: orderDetail.data.data.id_customer,
+                order_number: orderDetail.data.data.order_number,
+                total_price: total_price
+            }
+    
+            url = discoveryHelper.getInstance('payment-service')
+            await axios.post(`${url}/payment`, data)
+            return res.status(200).json({
+                success: true,
+                message: "Ticket has been accepted"
+            })
+        }    
     } catch (error) {
         console.log(error)
     }
