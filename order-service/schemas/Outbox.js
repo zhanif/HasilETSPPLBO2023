@@ -5,6 +5,6 @@ const OutboxSchema = new mongoose.Schema({
     aggregate_type: String,
     type: String,
     payload: String
-}, {versionKey: false})
+}, {versionKey: false, timestamps: true})
 
 module.exports = mongoose.models.Outbox || mongoose.model('Outbox', OutboxSchema)
