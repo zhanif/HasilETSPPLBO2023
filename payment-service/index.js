@@ -6,8 +6,8 @@ const axios = require('axios')
 const discoveryHelper = require('./discovery-helper')
 
 const app = express()
-const port = 8116
-
+let port = 8116
+port = 0
 app.use(bodyParser.json())
 
 app.post('/payment', async (req, res) => {

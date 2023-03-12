@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
 
-const port = 8113
+let port = 8113
+port = 0
 const mongoose = require('mongoose')
 
 mongoose.connect(`mongodb://localhost:27017/ets_cafe_service`).then(() => {

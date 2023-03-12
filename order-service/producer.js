@@ -40,7 +40,8 @@ const produce = async () => {
                 await Outbox.deleteMany({_id: {$in: deletableId}})
 
             }
-            serviceLog(`Producer -- ${datax.length > 0 ? `(${datax.length} events). Sent: ${JSON.stringify(content)}` : 'Outbox is empty'}`)
+            let time = new Date().toLocaleTimeString();
+            serviceLog(`[${time}] Producer -- ${datax.length > 0 ? `(${datax.length} events). Sent: ${JSON.stringify(content)}` : 'Outbox is empty'}`)
         } catch (error) {
             console.error(`Producer -- Unable to post: ${error}`)
         }    

@@ -9,8 +9,8 @@ const discoveryHelper = require('./discovery-helper')
 const produce = require('./producer')
 
 const app = express()
-const port = 8114
-
+let port = 8114
+port = 0
 const outbox = new Outbox
 
 produce().catch(err => { console.error(err) })

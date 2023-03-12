@@ -7,8 +7,8 @@ const db = require('./database')
 const discoveryHelper = require('./discovery-helper')
 
 const app = express()
-const port = 8112
-
+let port = 8112
+port = 0
 app.use(bodyParser.json())
 
 app.get('/customer', async (req, res) => {

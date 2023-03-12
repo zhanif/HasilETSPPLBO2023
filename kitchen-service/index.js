@@ -8,8 +8,8 @@ const mysql = require('mysql')
 const consume = require('./consumer')
 
 const app = express()
-const port = 8111
-
+let port = 8111
+port = 0
 app.use(bodyParser.json())
 
 // app.get('/kitchen', async (req, res) => {

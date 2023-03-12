@@ -6,8 +6,8 @@ const Transaction = require('./schemas/Transaction')
 
 const discoveryHelper = require('./discovery-helper')
 const app = express()
-const port = 8117
-
+let port = 8117
+port = 0
 mongoose.connect(`mongodb://localhost:27017/ets_transaction_service`).then(() => {
     serviceLog(`Successfully connected to database`)
 })
