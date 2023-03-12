@@ -80,5 +80,7 @@ app.delete('/customer/:id', (req, res) => {
 })
 
 const service = app.listen(port, () => {
-    serviceLog(`Listening on port ${service.address().port} ...`)
+    let xport = service.address().port
+    serviceLog(`Listening on port ${xport} ...`, xport)
 })
+

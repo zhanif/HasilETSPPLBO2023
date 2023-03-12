@@ -71,6 +71,14 @@ app.post('/order', async (req, res) => {
     }
 })
 
+app.get('/order/:number', async (req,res) => {
+    let data = await Order.findOne({order_number: req.params.number})
+    return res.status(200).json({
+        success: true,
+        data: data
+    })
+})
+
 app.post('/order/:number/items', async (req, res) => {
     try {
         let data = req.body.items
@@ -104,5 +112,6 @@ app.put('/order/:number/items', async (req, res) => {
 })
 
 const service = app.listen(port, () => {
-    serviceLog(`Listening on port ${service.address().port} ...`)
+    let xport = service.address().port
+    serviceLog(`Listening on port ${xport} ...`, xport)
 })

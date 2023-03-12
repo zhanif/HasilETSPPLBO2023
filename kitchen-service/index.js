@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
 const db = require('./database')
+const axios = require('axios')
 
 const app = express()
 const port = 8111
@@ -109,28 +110,54 @@ app.post('/kitchen/ticket', async (req, res) => {
     })
 })
 
-app.post('/kitchen/ticket/:order_number', async (req, res) => {
-    let data = {
-        status: req.body.status,
-    }
-    let result = await new Promise((resolve, reject) => {
-        db.query(`UPDATE ticket SET status=? WHERE order_number=?`, [data.status, req.params.order_number], (err, res) => {
-            if (err) reject(err)
-            resolve(true)
+app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
+    try {
+        
+        let result = await new Promise((resolve, reject) => {
+            db.query(`UPDATE ticket SET status=? WHERE order_number=?`, ['accept', req.params.order_number], (err, res) => {
+                if (err) reject(err)
+                resolve(true)
+            })
         })
-    })
-    if (!result) {
-        return res.status(400).json({
+        if (!result) {
+            return res.status(400).json({
+                success: true,
+                message: "Unable to update ticket"
+            })
+        }
+    
+        let orderDetail = await axios.get(`http://localhost:8114/order/${req.params.order_number}`)
+        if (!orderDetail.data.data) throw new Error(`Invalid order data`)
+        
+        let total_price = 0;
+        orderDetail.data.data.items.forEach(i => {
+            total_price += i.price
+        })
+    
+        let data = {
+            id_cafe: orderDetail.data.data.id_cafe,
+            id_customer: orderDetail.data.data.id_customer,
+            order_number: orderDetail.data.data.order_number,
+            total_price: total_price
+        }
+
+        console.log(data);
+    
+        await axios.post(`http://localhost:8116/payment`, data)
+        return res.status(200).json({
             success: true,
-            message: "Unable to update ticket"
+            message: "Ticket has been accepted"
         })
+    } catch (error) {
+        console.log(error)
     }
-    res.status(200).json({
+    res.status(400).json({
         success: true,
-        message: "Ticket has been updated"
-    })   
+        message: "Unable to accept ticket"
+    })
 })
 
 const service = app.listen(port, () => {
-    serviceLog(`Listening on port ${service.address().port} ...`)
+    let xport = service.address().port
+    serviceLog(`Listening on port ${xport} ...`, xport)
 })
