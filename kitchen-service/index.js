@@ -84,6 +84,53 @@ app.delete('/kitchen/menu/:id', async (req, res) => {
     })
 })
 
+app.post('/kitchen/ticket', async (req, res) => {
+    let data = {
+        id_cafe: req.body.id_cafe,
+        id_outlet: req.body.id_outlet,
+        order_number: req.body.order_number
+    }
+
+    let result = await new Promise((resolve, reject) => {
+        db.query(`INSERT INTO ticket(\`id_cafe\`, \`id_outlet\`, \`order_number\`) VALUES (?, ?, ?)`, [data.id_cafe, data.id_outlet, data.order_number], (err, res) => {
+            if (err) reject(err)
+            resolve(true)
+        })
+    })
+    if (result) {
+        return res.status(201).json({
+            success: true,
+            message: "Ticket has been created"
+        })
+    }
+    res.status(400).json({
+        success: true,
+        message: "Unable to create ticket"
+    })
+})
+
+app.post('/kitchen/ticket/:order_number', async (req, res) => {
+    let data = {
+        status: req.body.status,
+    }
+    let result = await new Promise((resolve, reject) => {
+        db.query(`UPDATE ticket SET status=? WHERE order_number=?`, [data.status, req.params.order_number], (err, res) => {
+            if (err) reject(err)
+            resolve(true)
+        })
+    })
+    if (!result) {
+        return res.status(400).json({
+            success: true,
+            message: "Unable to update ticket"
+        })
+    }
+    res.status(200).json({
+        success: true,
+        message: "Ticket has been updated"
+    })   
+})
+
 const service = app.listen(port, () => {
     serviceLog(`Listening on port ${service.address().port} ...`)
 })
