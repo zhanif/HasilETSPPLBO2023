@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const { serviceLog } = require('./utils')
 const db = require('./database')
+const axios = require('axios')
 
 const app = express()
 const port = 8116
@@ -60,10 +61,13 @@ app.get('/payment/:order_number', async (req, res) => {
                 resolve(retVal)
             })
         })
-        if (result) return res.status(200).json({
-            success: true,
-            data: result
-        })
+        if (result)
+        {
+            return res.status(200).json({
+                success: true,
+                data: result
+            })
+        }
     } catch (error) {
         console.log(error)
     }
@@ -78,10 +82,39 @@ app.post('/payment/:order_number/pay', async (req, res) => {
         let result = await new Promise((resolve, reject) => {
             db.query(`UPDATE payment SET status=? WHERE order_number=?`, ['paid', req.params.order_number], (err, res) => {
                 if (err) reject(err)
-                resolve(true)
+                if (res.affectedRows > 0) resolve(true)
+                else resolve(false)
             })
         })
         if (result) {
+            let select = await new Promise((resolve, reject) => {
+                db.query(`SELECT id_cafe, id_customer, order_number, status, total_price FROM payment WHERE order_number=?`, [req.params.order_number], (err, res) => {
+                    if (err) reject(err)
+                    let retVal = null
+                    if (res) {
+                        res.forEach(element => {
+                            retVal = {
+                                id_cafe: element.id_cafe,
+                                id_outlet: element.id_outlet,
+                                id_customer: element.id_customer,
+                                order_number: element.order_number,
+                                status: element.status,
+                                total_price: element.total_price
+                            }
+                        });
+                    }
+                    resolve(retVal)
+                })
+            })
+            if (select) {
+                let dataLog = {
+                    id_cafe: select.id_cafe,
+                    order_number: select.order_number,
+                    total_price: select.total_price,
+                }
+                await axios.post(`http://localhost:8117/transaction`, dataLog)
+            }
+
             return res.status(200).json({
                 success: true,
                 message: "Payment has been paid"

@@ -12,10 +12,6 @@ mongoose.connect(`mongodb://localhost:27017/ets_order_service`).then(() => {
     serviceLog(`Successfully connected to database`)
 })
 
-const conn = mongoose.connection;
-conn.on('error', () => console.error.bind(console, 'connection error'));
-// conn.once('open', () => console.info('Connection to Database is successful'));
-
 app.use(bodyParser.json())
 
 app.post('/order', async (req, res) => {
@@ -41,34 +37,26 @@ app.post('/order', async (req, res) => {
             order_number: randomString,
             items: req.body.items
         }
-        const session = await conn.startSession();
-        try {
-            session.startTransaction()
-            await Order.create([data], {session})
-            let datax = {
-                id_cafe: req.body.id_cafe,
-                id_outlet: req.body.id_outlet,
-                order_number: randomString
-            }
-            let resp = await axios.post(`http://localhost:8111/kitchen/ticket`, datax)
-            if (resp.status == 200) throw new Error(`Unable to create ticket`)
-            await session.commitTransaction()
+        await Order.create(data)
+        let datax = {
+            id_cafe: req.body.id_cafe,
+            id_outlet: req.body.id_outlet,
+            order_number: randomString
         }
-        catch(e) {
-            console.log(e);
-            await session.abortSession()
+        let resp = await axios.post(`http://localhost:8111/kitchen/ticket`, datax)
+        if (resp.status == 201) {
+            return res.status(201).json({
+                success: true,
+                message: 'Order has been created'
+            })
         }
-        
-        res.status(201).json({
-            success: true,
-            message: 'Order has been created'
-        })
     } catch (error) {
-        res.status(400).json({
-            success: true,
-            message: 'Unable to create order'
-        })
+        console.log(error);
     }
+    res.status(400).json({
+        success: true,
+        message: 'Unable to create order'
+    })
 })
 
 app.get('/order/:number', async (req,res) => {
