@@ -14,7 +14,7 @@ mongoose.connect(`mongodb://localhost:27017/ets_order_service`).then(() => {
 
 const conn = mongoose.connection;
 conn.on('error', () => console.error.bind(console, 'connection error'));
-conn.once('open', () => console.info('Connection to Database is successful'));
+// conn.once('open', () => console.info('Connection to Database is successful'));
 
 app.use(bodyParser.json())
 

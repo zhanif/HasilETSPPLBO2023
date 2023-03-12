@@ -112,7 +112,7 @@ app.post('/kitchen/ticket', async (req, res) => {
 
 app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
     try {
-        
+         
         let result = await new Promise((resolve, reject) => {
             db.query(`UPDATE ticket SET status=? WHERE order_number=?`, ['accept', req.params.order_number], (err, res) => {
                 if (err) reject(err)
@@ -122,7 +122,7 @@ app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
         if (!result) {
             return res.status(400).json({
                 success: true,
-                message: "Unable to update ticket"
+                message: "Unable to accept ticket"
             })
         }
     
@@ -147,6 +147,34 @@ app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Ticket has been accepted"
+        })
+    } catch (error) {
+        console.log(error)
+    }
+    res.status(400).json({
+        success: true,
+        message: "Unable to accept ticket"
+    })
+})
+
+app.post('/kitchen/ticket/:order_number/accept', async (req, res) => {
+    try {
+         
+        let result = await new Promise((resolve, reject) => {
+            db.query(`UPDATE ticket SET status=? WHERE order_number=?`, ['reject', req.params.order_number], (err, res) => {
+                if (err) reject(err)
+                resolve(true)
+            })
+        })
+        if (!result) {
+            return res.status(400).json({
+                success: true,
+                message: "Unable to reject ticket"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Ticket has been rejected"
         })
     } catch (error) {
         console.log(error)

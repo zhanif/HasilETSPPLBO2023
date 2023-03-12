@@ -39,23 +39,61 @@ app.post('/payment', async (req, res) => {
     })
 })
 
-app.post('/payment/:order_number/pay', async (req, res) => {
-    let result = await new Promise((resolve, reject) => {
-        db.query(`UPDATE payment SET status=? WHERE order_number=?`, ['paid', req.params.order_number], (err, res) => {
-            if (err) reject(err)
-            resolve(true)
+app.get('/payment/:order_number', async (req, res) => {
+    try {
+        let result = await new Promise((resolve, reject) => {
+            db.query(`SELECT id_cafe, id_customer, order_number, status, total_price FROM payment WHERE order_number=?`, [req.params.order_number], (err, res) => {
+                if (err) reject(err)
+                let retVal = null
+                if (res) {
+                    res.forEach(element => {
+                        retVal = {
+                            id_cafe: element.id_cafe,
+                            id_outlet: element.id_outlet,
+                            id_customer: element.id_customer,
+                            order_number: element.order_number,
+                            status: element.status,
+                            total_price: element.total_price
+                        }
+                    });
+                }
+                resolve(retVal)
+            })
         })
-    })
-    if (!result) {
-        return res.status(400).json({
+        if (result) return res.status(200).json({
             success: true,
-            message: "Unable to pay payment"
+            data: result
         })
+    } catch (error) {
+        console.log(error)
     }
-    res.status(200).json({
+    res.status(400).json({
         success: true,
-        message: "Payment has been paid"
-    })   
+        message: "Unable to get payment"
+    })
+})
+
+app.post('/payment/:order_number/pay', async (req, res) => {
+    try {
+        let result = await new Promise((resolve, reject) => {
+            db.query(`UPDATE payment SET status=? WHERE order_number=?`, ['paid', req.params.order_number], (err, res) => {
+                if (err) reject(err)
+                resolve(true)
+            })
+        })
+        if (result) {
+            return res.status(200).json({
+                success: true,
+                message: "Payment has been paid"
+            })   
+        }
+    } catch (error) {
+        console.log(error)
+    }
+    res.status(400).json({
+        success: true,
+        message: "Unable to pay payment"
+    })
 })
 
 const service = app.listen(port, () => {
