@@ -1,3 +1,4 @@
+const Utils = require('../components/Utils')
 const Eureka = require('eureka-js-client').Eureka
 
 class Discovery {
@@ -27,22 +28,22 @@ class Discovery {
             },
         })
         this.client.start( error => {
-            serviceLog(error || "Registered to Discovery Server")
+            Utils.serviceLog(error || "Registered to Discovery Server")
         })
         this.client.on('deregistered', () => {
             process.exit()
-            serviceLog('after deregistered')
+            Utils.serviceLog('after deregistered')
         })
     
         this.client.on('started', () => {
-            serviceLog("Eureka host: " + eurekaHost)
+            Utils.serviceLog("Eureka host: " + eurekaHost)
         })
         process.on('SIGINT', this.exitHandler.bind(null, {exit:true}))
     }
     exitHandler(options, exitCode) {
         if (options.cleanup) {
         }
-        if (exitCode || exitCode === 0) serviceLog(exitCode)
+        if (exitCode || exitCode === 0) Utils.serviceLog(exitCode)
         if (options.exit) {
             this.client.stop()
         }
