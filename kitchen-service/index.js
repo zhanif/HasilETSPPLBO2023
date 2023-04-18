@@ -6,16 +6,29 @@ const axios = require('axios')
 const discoveryHelper = require('./discovery-helper')
 const mysql = require('mysql')
 const consume = require('./consumer')
+const {Tracer, BatchRecorder} = require('zipkin')
+const {HttpLogger} = require('zipkin-transport-http')
+const CLSContext = require('zipkin-context-cls')
+
+const ctxImpl = new CLSContext
+const recorder = new BatchRecorder({
+    logger: new HttpLogger({
+        endpoint: `http://127.0.0.1:9411/api/v1/spans`
+    })
+})
+const tracer = new Tracer({ctxImpl, recorder, localServiceName: 'Order Service'})
+const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware
 
 const app = express()
 let port = 8111
 port = 0
 app.use(bodyParser.json())
+app.use(zipkinMiddleware({tracer}))
 
-// app.get('/kitchen', async (req, res) => {
-//     let data = await Menu.find({})
-//     res.status(200).json(data)
-// })
+app.get('/kitchen', async (req, res) => {
+    let data = await Menu.find({})
+    res.status(200).json(data)
+})
 consume().catch((err) => {
 	console.error("error in consumer: ", err)
 })

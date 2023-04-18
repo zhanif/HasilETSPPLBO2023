@@ -5,11 +5,24 @@ const md5 = require('md5')
 const { serviceLog } = require('./utils')
 const db = require('./database')
 const discoveryHelper = require('./discovery-helper')
+const {Tracer, BatchRecorder} = require('zipkin')
+const {HttpLogger} = require('zipkin-transport-http')
+const CLSContext = require('zipkin-context-cls')
+
+const ctxImpl = new CLSContext
+const recorder = new BatchRecorder({
+    logger: new HttpLogger({
+        endpoint: `http://127.0.0.1:9411/api/v1/spans`
+    })
+})
+const tracer = new Tracer({ctxImpl, recorder, localServiceName: 'Customer Service'})
+const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware
 
 const app = express()
 let port = 8112
 port = 0
 app.use(bodyParser.json())
+app.use(zipkinMiddleware({tracer}))
 
 app.get('/customer', async (req, res) => {
     getCustomers = async () => {

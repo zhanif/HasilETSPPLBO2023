@@ -7,6 +7,18 @@ const Outbox = require('./outboxHandler')
 const Order = require('./schemas/Order')
 const discoveryHelper = require('./discovery-helper')
 const produce = require('./producer')
+const {Tracer, BatchRecorder} = require('zipkin')
+const {HttpLogger} = require('zipkin-transport-http')
+const CLSContext = require('zipkin-context-cls')
+
+const ctxImpl = new CLSContext
+const recorder = new BatchRecorder({
+    logger: new HttpLogger({
+        endpoint: `http://127.0.0.1:9411/api/v1/spans`
+    })
+})
+const tracer = new Tracer({ctxImpl, recorder, localServiceName: 'Customer Service'})
+const zipkinMiddleware = require('zipkin-instrumentation-express').expressMiddleware
 
 const app = express()
 let port = 8114
@@ -20,6 +32,7 @@ mongoose.connect(`mongodb://localhost:27017/ets_order_service`).then(() => {
 })
 
 app.use(bodyParser.json())
+app.use(zipkinMiddleware({tracer}))
 
 app.post('/order', async (req, res) => {
     try {
